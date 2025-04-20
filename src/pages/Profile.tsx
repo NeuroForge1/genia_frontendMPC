@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-  const { user, updateUserProfile, logout } = useAuth();
+  const { user, updateProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || '',
@@ -34,7 +34,7 @@ const Profile = () => {
 
     setIsLoading(true);
     try {
-      await updateUserProfile({
+      await updateProfile({
         full_name: formData.fullName,
       });
       // Mostrar mensaje de éxito
@@ -47,7 +47,7 @@ const Profile = () => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate('/login');
   };
 
