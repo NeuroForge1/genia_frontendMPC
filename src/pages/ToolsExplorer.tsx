@@ -4,6 +4,12 @@ import { useQuery } from 'react-query';
 import { apiService } from '@/services/api';
 import { useToolStore } from '@/services/store';
 
+// Definir tipos para evitar errores de TypeScript
+type PlanType = 'free' | 'basic' | 'pro' | 'enterprise';
+type PlanHierarchy = {
+  [key in PlanType]: number;
+};
+
 const ToolsExplorer: React.FC = () => {
   const { user, userDetails } = useAuth();
   const { favorites, addToFavorites, removeFromFavorites, addRecentTool, incrementToolUsage } = useToolStore();
@@ -213,15 +219,20 @@ const ToolsExplorer: React.FC = () => {
   
   // Verificar si una herramienta está disponible según el plan del usuario
   const isToolAvailable = (toolPlan: string) => {
-    const planHierarchy = {
+    const planHierarchy: PlanHierarchy = {
       'free': 0,
       'basic': 1,
       'pro': 2,
       'enterprise': 3
     };
     
-    const userPlanLevel = planHierarchy[userDetails?.plan || 'free'] || 0;
-    const toolPlanLevel = planHierarchy[toolPlan] || 0;
+    // Asegurarse de que userDetails?.plan sea uno de los tipos válidos o usar 'free' como valor predeterminado
+    const userPlan = (userDetails?.plan as PlanType) || 'free';
+    // Asegurarse de que toolPlan sea uno de los tipos válidos o usar 'free' como valor predeterminado
+    const validToolPlan = (toolPlan as PlanType) || 'free';
+    
+    const userPlanLevel = planHierarchy[userPlan];
+    const toolPlanLevel = planHierarchy[validToolPlan];
     
     return userPlanLevel >= toolPlanLevel;
   };
@@ -388,144 +399,105 @@ const ToolsExplorer: React.FC = () => {
                             )}
                           </button>
                         </div>
-                        <p className="text-sm text-muted-foreground">{tool.description}</p>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            isToolAvailable(tool.plan) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {tool.plan.charAt(0).toUpperCase() + tool.plan.slice(1)}
+                        <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
+                        <div className="flex items-center mt-2">
+                          <span className={`text-xs px-2 py-1 rounded-full ${isToolAvailable(tool.plan) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {isToolAvailable(tool.plan) ? 'Disponible' : 'Plan Superior Requerido'}
                           </span>
-                          <span className="text-xs text-muted-foreground">{tool.creditCost} créditos</span>
+                          <span className="text-xs text-muted-foreground ml-2">{tool.creditCost} créditos</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
-                
-                {filteredTools?.length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-muted-foreground">No se encontraron herramientas que coincidan con los filtros.</p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
         
-        {/* Detalle de herramienta */}
-        <div className="lg:col-span-2">
+        {/* Detalles de la herramienta */}
+        <div className="lg:col-span-2 space-y-4">
           {selectedTool ? (
-            <div className="card">
-              <div className="card-header">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full text-2xl">
-                    {selectedTool.icon}
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="card-title">{selectedTool.name}</h2>
-                    <p className="card-description">{selectedTool.description}</p>
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full text-2xl mr-4">
+                      {selectedTool.icon}
+                    </div>
+                    <div>
+                      <h2 className="card-title text-xl">{selectedTool.name}</h2>
+                      <p className="text-muted-foreground">{selectedTool.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="card-content">
-                <div className="space-y-6">
-                  {/* Información de la herramienta */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm font-medium">Plan requerido</p>
-                      <p className="text-lg font-bold capitalize">{selectedTool.plan}</p>
-                    </div>
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm font-medium">Costo por uso</p>
-                      <p className="text-lg font-bold">{selectedTool.creditCost} créditos</p>
-                    </div>
-                  </div>
-                  
-                  {/* Capacidades */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Capacidades</h3>
-                    <div className="space-y-4">
-                      {selectedTool.capabilities.map((capability: any) => (
-                        <div key={capability.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">{capability.name}</h4>
-                            <button
-                              className={`btn btn-sm ${isToolAvailable(selectedTool.plan) ? 'btn-primary' : 'btn-outline opacity-50 cursor-not-allowed'}`}
-                              onClick={() => isToolAvailable(selectedTool.plan) && handleExecuteCapability(capability)}
-                              disabled={!isToolAvailable(selectedTool.plan) || isExecuting}
-                            >
-                              {isExecuting ? 'Ejecutando...' : 'Ejecutar'}
-                            </button>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">{capability.description}</p>
-                          
-                          {/* Parámetros */}
-                          <div className="mt-3">
-                            <p className="text-xs font-medium mb-2">Parámetros:</p>
-                            <div className="space-y-2">
-                              {capability.params.map((param: any) => (
-                                <div key={param.name} className="flex items-start">
-                                  <span className="text-xs font-medium min-w-[100px]">{param.name}</span>
-                                  <span className="text-xs text-muted-foreground">{param.description}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                <div className="card-content">
+                  <h3 className="text-lg font-medium mb-4">Capacidades</h3>
+                  <div className="space-y-4">
+                    {selectedTool.capabilities.map((capability: any) => (
+                      <div key={capability.id} className="border rounded-lg p-4">
+                        <h4 className="font-medium">{capability.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{capability.description}</p>
+                        <div className="mt-4">
+                          <h5 className="text-sm font-medium mb-2">Parámetros:</h5>
+                          <ul className="text-sm space-y-2">
+                            {capability.params.map((param: any) => (
+                              <li key={param.name} className="flex">
+                                <span className="font-mono bg-muted px-2 py-1 rounded mr-2">{param.name}</span>
+                                <span className="text-muted-foreground">{param.description}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Resultado de ejecución */}
-                  {executionResult && (
-                    <div className={`border rounded-lg p-4 ${executionResult.status === 'success' ? 'border-green-300' : 'border-red-300'}`}>
-                      <h3 className="text-lg font-medium mb-2">Resultado</h3>
-                      {executionResult.status === 'success' ? (
-                        <div>
-                          <div className="bg-muted p-4 rounded-lg mb-3">
-                            <p className="whitespace-pre-wrap">{executionResult.data.result}</p>
-                          </div>
-                          <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>Tiempo de ejecución: {executionResult.data.execution_time}</span>
-                            <span>Créditos utilizados: {executionResult.data.credits_used}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-red-500">
-                          {executionResult.message}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Mensaje de plan no disponible */}
-                  {!isToolAvailable(selectedTool.plan) && (
-                    <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-                      <div className="flex items-start">
-                        <svg className="w-6 h-6 text-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-accent">Actualiza tu plan</h3>
-                          <p className="mt-1 text-sm">Esta herramienta requiere el plan {selectedTool.plan}. Actualiza tu plan para acceder a esta funcionalidad.</p>
-                          <a href="/pricing" className="mt-2 inline-block text-sm font-medium text-accent hover:underline">
-                            Ver planes disponibles
-                          </a>
+                        <div className="mt-4">
+                          <button
+                            onClick={() => handleExecuteCapability(capability)}
+                            disabled={isExecuting || !isToolAvailable(selectedTool.plan)}
+                            className="btn btn-primary"
+                          >
+                            {isExecuting ? 'Ejecutando...' : 'Ejecutar'}
+                          </button>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+              
+              {/* Resultado de la ejecución */}
+              {executionResult && (
+                <div className={`card ${executionResult.status === 'success' ? 'border-green-500' : 'border-red-500'}`}>
+                  <div className="card-header">
+                    <h2 className="card-title text-lg">Resultado</h2>
+                  </div>
+                  <div className="card-content">
+                    {executionResult.status === 'success' ? (
+                      <>
+                        <div className="bg-muted p-4 rounded-lg">
+                          <p>{executionResult.data.result}</p>
+                        </div>
+                        <div className="flex justify-between mt-4 text-sm text-muted-foreground">
+                          <span>Tiempo de ejecución: {executionResult.data.execution_time}</span>
+                          <span>Créditos utilizados: {executionResult.data.credits_used}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-red-50 p-4 rounded-lg text-red-800">
+                        <p>{executionResult.message}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="card">
-              <div className="card-content p-12 text-center">
-                <svg className="w-16 h-16 mx-auto text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="card-content text-center py-12">
+                <svg className="w-16 h-16 mx-auto text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                <h3 className="mt-4 text-lg font-medium">Selecciona una herramienta</h3>
-                <p className="mt-2 text-muted-foreground">Elige una herramienta de la lista para ver sus detalles y capacidades.</p>
+                <h3 className="text-lg font-medium mt-4">Selecciona una herramienta</h3>
+                <p className="text-muted-foreground mt-2">Explora las herramientas disponibles y selecciona una para ver sus capacidades</p>
               </div>
             </div>
           )}
