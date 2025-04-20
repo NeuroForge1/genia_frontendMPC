@@ -1,26 +1,23 @@
-# GENIA MCP - Frontend
+# GENIA MPC Frontend
 
-Este repositorio contiene el frontend del proyecto GENIA MCP, una plataforma SaaS basada en el Modelo de Cliente Potenciado (MCP) que permite a los usuarios acceder a herramientas de IA y automatización.
+Este repositorio contiene el frontend para el sistema GENIA MPC, una plataforma SaaS basada en el Modelo de Cliente Potenciado (MCP) de Anthropic.
 
-## Tecnologías
+## Características
 
-- **React 18** - Biblioteca para construir interfaces de usuario
-- **TypeScript** - Superset tipado de JavaScript
-- **Vite** - Herramienta de construcción rápida para desarrollo web
-- **Tailwind CSS** - Framework CSS utilitario
-- **React Router** - Enrutamiento para aplicaciones React
-- **React Query** - Gestión de estado del servidor y caché
-- **Zustand** - Gestión de estado del cliente
-- **Supabase** - Backend as a Service para autenticación y base de datos
+- Interfaz de usuario moderna con React y Tailwind CSS
+- Sistema de autenticación con Supabase
+- Integración con múltiples herramientas (OpenAI, WhatsApp, Stripe, Gmail, etc.)
+- Dashboard interactivo para gestionar herramientas y tareas
+- Explorador de herramientas disponibles según el plan del usuario
 
 ## Requisitos
 
-- Node.js 18 o superior
-- npm 8 o superior
+- Node.js 16+
+- npm o yarn
 
 ## Instalación
 
-1. Clona este repositorio:
+1. Clona el repositorio:
 ```bash
 git clone https://github.com/NeuroForge1/genia_frontendMPC.git
 cd genia_frontendMPC
@@ -31,80 +28,53 @@ cd genia_frontendMPC
 npm install
 ```
 
-3. Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
-```
-VITE_API_URL=http://localhost:8000
-VITE_SUPABASE_URL=tu-url-de-supabase
-VITE_SUPABASE_ANON_KEY=tu-clave-anonima-de-supabase
+3. Crea un archivo `.env` basado en `.env.example`:
+```bash
+cp .env.example .env
 ```
 
-## Desarrollo
+4. Configura las variables de entorno en el archivo `.env`:
+```
+VITE_API_URL=https://genia-backendmpc.onrender.com
+VITE_SUPABASE_URL=https://axfcmtrhsvmtzqqhxwul.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4ZmNtdHJoc3ZtdHpxcWh4d3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4MjA2MzksImV4cCI6MjA1OTM5NjYzOX0.F7X3QI2AL90Q-XZjWceSuW45vDMBjz7txTqge4lwxtQ
+```
 
-Para iniciar el servidor de desarrollo:
-
+5. Inicia el servidor de desarrollo:
 ```bash
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:5173`.
+## Despliegue en Vercel
 
-## Construcción
+Para desplegar el frontend en Vercel, sigue estos pasos:
 
-Para construir la aplicación para producción:
+1. Asegúrate de que los archivos `tsconfig.json` y `tsconfig.node.json` estén presentes en el repositorio.
 
-```bash
-npm run build
+2. Configura un nuevo proyecto en Vercel:
+   - Framework Preset: Vite
+   - Build Command: `npm run build`
+   - Output Directory: dist
+   - Install Command: `npm install`
+
+3. Configura las variables de entorno en Vercel:
+```
+VITE_API_URL=https://genia-backendmpc.onrender.com
+VITE_SUPABASE_URL=https://axfcmtrhsvmtzqqhxwul.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4ZmNtdHJoc3ZtdHpxcWh4d3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4MjA2MzksImV4cCI6MjA1OTM5NjYzOX0.F7X3QI2AL90Q-XZjWceSuW45vDMBjz7txTqge4lwxtQ
 ```
 
-Los archivos de construcción se generarán en el directorio `dist`.
+4. Haz clic en "Deploy" para iniciar el despliegue.
 
 ## Estructura del Proyecto
 
-```
-src/
-├── assets/         # Recursos estáticos (imágenes, fuentes, etc.)
-├── components/     # Componentes reutilizables
-│   ├── auth/       # Componentes relacionados con autenticación
-│   ├── layout/     # Componentes de diseño (Header, Sidebar, etc.)
-│   └── ui/         # Componentes de interfaz de usuario
-├── contexts/       # Contextos de React (AuthContext, etc.)
-├── hooks/          # Hooks personalizados
-├── pages/          # Componentes de página
-├── services/       # Servicios (API, Supabase, etc.)
-├── styles/         # Estilos globales
-└── utils/          # Utilidades y funciones auxiliares
-```
-
-## Características
-
-- **Autenticación** - Inicio de sesión y registro con email/contraseña y proveedores OAuth (Google, Facebook)
-- **Dashboard** - Panel de control con resumen de actividad y herramientas populares
-- **Explorador de Herramientas** - Interfaz para descubrir y utilizar las herramientas disponibles
-- **Gestión de Perfil** - Configuración de cuenta y preferencias
-- **Planes y Pagos** - Gestión de suscripciones y créditos
-
-## Despliegue
-
-El frontend está configurado para ser desplegado en Vercel. Para desplegar:
-
-1. Conecta tu repositorio de GitHub a Vercel
-2. Configura las variables de entorno en Vercel:
-   - `VITE_API_URL` - URL del backend (ej. https://genia-backend-mpc.onrender.com)
-   - `VITE_SUPABASE_URL` - URL de tu proyecto Supabase
-   - `VITE_SUPABASE_ANON_KEY` - Clave anónima de Supabase
-
-## Pruebas
-
-Para ejecutar las pruebas:
-
-```bash
-npm run test
-```
+- `src/`: Código fuente principal
+  - `components/`: Componentes reutilizables
+  - `contexts/`: Contextos de React (AuthContext, etc.)
+  - `pages/`: Páginas principales de la aplicación
+  - `services/`: Servicios para comunicación con el backend
+  - `styles/`: Estilos globales y configuración de Tailwind
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
-## Contacto
-
-Para cualquier consulta o sugerencia, por favor contacta a [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com).
+MIT
