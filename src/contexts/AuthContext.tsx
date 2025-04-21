@@ -126,8 +126,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      toast.success('Registro exitoso. Verifica tu correo electrónico.');
-      navigate('/login');
+      toast.success('Registro exitoso. Bienvenido a GENIA MCP.');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Error al registrarse:', error);
       toast.error(error.message || 'Error al registrarse');
