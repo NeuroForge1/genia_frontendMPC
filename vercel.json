@@ -12,6 +12,5 @@
   "framework": "vite",
   "github": {
     "silent": true
-  },
-  "frameworkVersion": "4.x"
+  }
 }
