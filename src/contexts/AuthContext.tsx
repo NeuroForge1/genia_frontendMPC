@@ -103,19 +103,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserDetails = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from('usuarios')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) {
+      // Handle cases where the user exists in auth but not in 'usuarios' table yet
+      if (error && status !== 406) { // 406 means no rows found, which might be okay initially
+        console.error('Error crítico al obtener detalles del usuario:', error);
         throw error;
       }
 
-      setUserDetails(data);
+      if (data) {
+        setUserDetails(data);
+        return data; // Return data on success
+      }
+      console.warn(`No se encontraron detalles para el usuario ${userId} (status ${status}), puede ser normal si es un registro nuevo.`);
+      setUserDetails(null); // Ensure userDetails is null if not found
+      return null; // Return null if no details found (status 406)
+
     } catch (error) {
-      console.error('Error al obtener detalles del usuario:', error);
+      console.error('Error catch en fetchUserDetails:', error);
+      // Decide if this error should prevent login or just be logged
+      // For now, let's log it but potentially allow login if auth succeeded
+      // throw error; // Re-throwing would stop the login process
+      setUserDetails(null); // Ensure userDetails is null on error
+      return null; // Indicate failure to fetch details
     }
   };
 
