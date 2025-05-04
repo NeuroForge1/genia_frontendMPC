@@ -48,6 +48,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     getInitialSession();
 
+    // Manejar tokens de sesión desde el hash de la URL (para confirmación de email/OAuth)
+    const hash = window.location.hash;
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1)); // Quita el # inicial
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const type = params.get("type");
+
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error setting session from URL hash:", error);
+              toast.error("Error al procesar la sesión desde la URL.");
+            } else if (data.session) {
+              if (type === "signup") {
+                toast.success("¡Correo electrónico confirmado con éxito!");
+              }
+              // El onAuthStateChange debería manejar la actualización del estado
+              // Limpiar el hash de la URL
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+              // Navegar al dashboard después de confirmar/iniciar sesión desde URL
+              navigate("/dashboard"); 
+            }
+          });
+      } else if (params.get("error")) {
+        // Manejar errores de OAuth en el hash
+        toast.error(`Error de autenticación: ${params.get("error_description") || params.get("error")}`);
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
+
     // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -88,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    let success = false; // Flag to track success
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -99,13 +132,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      toast.success('Inicio de sesión exitoso');
-      navigate('/dashboard');
+      // Fetch details directly after successful sign-in
+      if (data.user) {
+         await fetchUserDetails(data.user.id); 
+         success = true; // Mark as successful
+      } else {
+         // This case shouldn't happen if signInWithPassword succeeds without error, but handle defensively
+         throw new Error("Inicio de sesión exitoso pero no se encontró el usuario.");
+      }
+
     } catch (error: any) {
       console.error('Error al iniciar sesión:', error);
       toast.error(error.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
+      // Only navigate if sign-in and detail fetching were successful
+      if (success) {
+        toast.success('Inicio de sesión exitoso');
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -126,8 +171,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      toast.success('Registro exitoso. Bienvenido a GENIA MCP.');
-      navigate('/dashboard');
+      toast.success("Registro exitoso. Revisa tu correo para confirmar tu cuenta.");
+      // navigate("/dashboard"); // No redirigir automáticamente, esperar confirmación
     } catch (error: any) {
       console.error('Error al registrarse:', error);
       toast.error(error.message || 'Error al registrarse');
