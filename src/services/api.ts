@@ -52,7 +52,7 @@ export const apiService = {
     
     // Obtener herramientas disponibles
     getAvailable: async () => {
-      return api.get('/api/genia/tools');
+      return api.get('/api/v1/tools');
     }
   },
   
