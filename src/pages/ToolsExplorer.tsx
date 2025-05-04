@@ -307,7 +307,9 @@ const ToolsExplorer: React.FC = () => {
                                 </svg>
                                 Ejecutando...
                               </>
-                            ) : "Ejecutar"}
+                            ) : (
+                              "Ejecutar"
+                            )}
                           </button>
                         </div>
                       </div>
@@ -315,43 +317,27 @@ const ToolsExplorer: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Resultado de la ejecución - Apply branding styles */}
+
+              {/* Resultados de la ejecución - Apply branding styles */}
               {executionResult && (
-                <div className={`rounded-2xl shadow-lg overflow-hidden ${executionResult.status === "success" ? "border border-green-300 bg-green-50" : "border border-red-300 bg-red-50"}`}>
-                  <div className="p-4 border-b ${executionResult.status === "success" ? "border-green-200" : "border-red-200"}">
-                    <h2 className={`text-lg font-semibold ${executionResult.status === "success" ? "text-green-800" : "text-red-800"}`}>Resultado</h2>
-                  </div>
-                  <div className="p-6">
-                    {executionResult.status === "success" ? (
-                      <>
-                        <div className="bg-genia-white p-4 rounded-lg border border-genia-gray-medium/30">
-                          {/* TODO: Format result nicely, maybe use markdown renderer */}
-                          <pre className="whitespace-pre-wrap text-sm text-genia-black">{JSON.stringify(executionResult.data, null, 2)}</pre>
-                        </div>
-                        <div className="flex justify-between mt-4 text-sm text-genia-gray-dark">
-                          <span>Tiempo: {executionResult.data.execution_time || "N/A"}</span>
-                          <span>Créditos: {executionResult.data.credits_used || selectedTool.creditCost || "N/A"}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-red-700">
-                        <p className="font-medium">Error al ejecutar:</p>
-                        <p>{executionResult.message}</p>
-                      </div>
-                    )}
-                  </div>
+                <div className="bg-genia-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-lg font-medium mb-4 text-genia-black">Resultado de la Ejecución</h3>
+                  {executionResult.status === "error" ? (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                      <strong className="font-bold">Error: </strong>
+                      <span className="block sm:inline">{executionResult.message}</span>
+                    </div>
+                  ) : (
+                    <pre className="bg-genia-gray-light p-4 rounded-lg text-sm text-genia-black overflow-x-auto">
+                      {JSON.stringify(executionResult, null, 2)}
+                    </pre>
+                  )}
                 </div>
               )}
             </>
           ) : (
-            <div className="bg-genia-white rounded-2xl shadow-lg">
-              <div className="p-12 text-center">
-                {/* Use Lucide icon */}
-                <svg className="w-16 h-16 mx-auto text-genia-gray-medium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 18.657A8 8 0 016.343 7.343m11.314 11.314a8 8 0 01-11.314 0m11.314 0L20 20M6.343 7.343L4 4m6 6l-4-4m0 0l4-4m-4 4l4 4m6-6l4 4m0 0l-4 4m4-4l-4-4" /></svg>
-                <h3 className="text-lg font-medium mt-4 text-genia-black">Selecciona una herramienta</h3>
-                <p className="text-genia-gray-dark mt-2">Explora las herramientas disponibles y selecciona una para ver sus capacidades</p>
-              </div>
+            <div className="bg-genia-white rounded-2xl shadow-lg p-6 text-center">
+              <p className="text-genia-gray-dark">Selecciona una herramienta de la lista para ver sus detalles y capacidades.</p>
             </div>
           )}
         </div>
@@ -361,3 +347,4 @@ const ToolsExplorer: React.FC = () => {
 };
 
 export default ToolsExplorer;
+
