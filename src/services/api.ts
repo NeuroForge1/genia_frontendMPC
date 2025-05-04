@@ -70,7 +70,7 @@ export const apiService = {
     
     // Obtener historial de tareas
     getTasks: async (page = 1, limit = 10) => {
-      return api.get(`/api/user/tasks?page=${page}&limit=${limit}`);
+      return api.get(`/api/v1/user/tasks?page=${page}&limit=${limit}`);
     }
   },
   
