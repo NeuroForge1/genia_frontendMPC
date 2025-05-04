@@ -26,7 +26,7 @@ const ToolsExplorer: React.FC = () => {
   const { data: toolsData, isLoading: toolsLoading } = useQuery("tools", apiService.tools.getAvailable, {
     enabled: !!user, // Only run if user is logged in
   });
-  const tools = toolsData?.data; // Extract data from response
+  const tools = toolsData; // Extract data from response
 
   // Combine loading states
   const isLoading = authLoading || toolsLoading;
