@@ -12,7 +12,7 @@ type PlanHierarchy = {
 
 const ToolsExplorer: React.FC = () => {
   const { user, userDetails, loading: authLoading } = useAuth(); // Get loading state
-  const { favorites, addToFavorites, removeFromFavorites, addRecentTool, incrementToolUsage } = useToolStore();
+  // const { favorites, addToFavorites, removeFromFavorites, addRecentTool, incrementToolUsage } = useToolStore(); // TODO: Implement or import useToolStore
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedTool, setSelectedTool] = useState<any>(null);
@@ -64,7 +64,7 @@ const ToolsExplorer: React.FC = () => {
   // Manejar la selección de una herramienta
   const handleSelectTool = (tool: any) => {
     setSelectedTool(tool);
-    addRecentTool(tool.id);
+    // addRecentTool(tool.id); // TODO: Implement or import useToolStore
   };
   
   // Manejar cambio en los parámetros del formulario
@@ -107,7 +107,7 @@ const ToolsExplorer: React.FC = () => {
       );
 
       setExecutionResult(response.data); // Store the actual response data
-      incrementToolUsage(selectedTool.id);
+      // incrementToolUsage(selectedTool.id); // TODO: Implement or import useToolStore
       // TODO: Update user credits globally (e.g., refetch user data or update Zustand store)
 
     } catch (error: any) {
@@ -123,11 +123,13 @@ const ToolsExplorer: React.FC = () => {
 
   // Manejar favoritos
   const toggleFavorite = (toolId: string) => {
-    if (favorites.includes(toolId)) {
-      removeFromFavorites(toolId);
-    } else {
-      addToFavorites(toolId);
-    }
+    // TODO: Implement or import useToolStore
+    console.log("Toggle favorite for:", toolId); // Placeholder
+    // if (favorites.includes(toolId)) {
+    //   removeFromFavorites(toolId);
+    // } else {
+    //   addToFavorites(toolId);
+    // }
   };
   
   if (isLoading) {
