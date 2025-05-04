@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'; // Import useEffect
+import { useQuery } from 'react-query'; // Import useQuery
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPlanStore } from '@/services/store';
 import { apiService } from '@/services/api';
