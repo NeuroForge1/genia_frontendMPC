@@ -222,8 +222,8 @@ const ToolsExplorer: React.FC = () => {
                             }}
                             className="text-genia-gray-dark hover:text-yellow-500 transition-colors p-1 rounded-full hover:bg-yellow-100/50"
                           >
-                          {/* Use Lucide Star icon */}
-                            <Star className={`w-5 h-5 ${favorites.includes(tool.id) ? "text-yellow-400 fill-current" : ""}`} />
+                          {/* Use Lucide Star icon - TODO: Re-enable favorite status based on actual store */}
+                            <Star className={`w-5 h-5`} />
                           </button>
                         </div>
                         <p className="text-sm text-genia-gray-dark mt-1">{tool.description}</p>
