@@ -23,7 +23,7 @@ const ToolsExplorer: React.FC = () => {
   const queryClient = useQueryClient(); // Get query client instance
 
   // Cargar herramientas disponibles
-  const { data: toolsData, isLoading: toolsLoading } = useQuery("tools", apiService.tools.getAvailable, {
+  const { data: toolsData, isLoading: toolsLoading, error } = useQuery("tools", apiService.tools.getAvailable, {
     enabled: !!user, // Only run if user is logged in
   });
   const tools = toolsData?.data; // Extract data from response
@@ -138,6 +138,11 @@ const ToolsExplorer: React.FC = () => {
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  // Error state UI
+  if (error) {
+    return <div className="flex justify-center items-center h-screen"><p>Error al cargar las herramientas: {(error as Error).message}</p></div>;
   }
   
   // Main component render
