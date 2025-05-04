@@ -4,6 +4,8 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
+import AppLayout from '@/components/layout/AppLayout'; // Import the layout
+
 // Importar páginas
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -60,11 +62,14 @@ function App() {
             <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
             <Route path="/pricing" element={<Pricing />} />
             
-            {/* Rutas protegidas */}
+            {/* Rutas protegidas envueltas en AppLayout */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tools" element={<ToolsExplorer />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route element={<AppLayout />}> {/* Wrap protected routes */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tools" element={<ToolsExplorer />} />
+                <Route path="/profile" element={<Profile />} />
+                {/* Add other protected routes inside AppLayout here */}
+              </Route>
             </Route>
             
             {/* Redirección y 404 */}

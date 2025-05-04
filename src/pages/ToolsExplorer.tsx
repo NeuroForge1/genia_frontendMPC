@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query'; // Import useQueryClient
 import { apiService } from '@/services/api';
-import { useToolStore } from '@/services/store';
+import { Star } from 'lucide-react'; // Import Star icon
 
 // Definir tipos para evitar errores de TypeScript
 type PlanType = 'free' | 'basic' | 'pro' | 'enterprise';
@@ -11,202 +11,26 @@ type PlanHierarchy = {
 };
 
 const ToolsExplorer: React.FC = () => {
-  const { user, userDetails } = useAuth();
+  const { user, userDetails, loading: authLoading } = useAuth(); // Get loading state
   const { favorites, addToFavorites, removeFromFavorites, addRecentTool, incrementToolUsage } = useToolStore();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedTool, setSelectedTool] = useState<any>(null);
+  const [selectedCapability, setSelectedCapability] = useState<any>(null); // State for selected capability
+  const [formParams, setFormParams] = useState<any>({}); // State for form parameters
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [executionResult, setExecutionResult] = useState<any>(null);
-  
-  // Cargar herramientas disponibles
-  const { data: tools, isLoading } = useQuery('tools', async () => {
-    // En una implementación real, esto obtendría datos del backend
-    // Simulamos la carga de datos para este ejemplo
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return [
-      { 
-        id: 'openai', 
-        name: 'OpenAI', 
-        description: 'Generación de texto y procesamiento de lenguaje natural con OpenAI',
-        icon: '🤖',
-        category: 'ai',
-        plan: 'free',
-        creditCost: 1,
-        capabilities: [
-          {
-            id: 'generate_text',
-            name: 'Generar Texto',
-            description: 'Genera texto a partir de un prompt utilizando GPT-4',
-            params: [
-              { name: 'prompt', type: 'string', required: true, description: 'Texto de entrada para generar contenido' },
-              { name: 'max_tokens', type: 'number', required: false, default: 500, description: 'Longitud máxima del texto generado' },
-              { name: 'temperature', type: 'number', required: false, default: 0.7, description: 'Temperatura de generación (0-1)' }
-            ]
-          },
-          {
-            id: 'transcribe_audio',
-            name: 'Transcribir Audio',
-            description: 'Transcribe audio a texto utilizando Whisper',
-            params: [
-              { name: 'audio_url', type: 'string', required: true, description: 'URL del archivo de audio a transcribir' }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 'whatsapp', 
-        name: 'WhatsApp', 
-        description: 'Envío y recepción de mensajes de WhatsApp',
-        icon: '💬',
-        category: 'messaging',
-        plan: 'basic',
-        creditCost: 5,
-        capabilities: [
-          {
-            id: 'send_message',
-            name: 'Enviar Mensaje',
-            description: 'Envía un mensaje de WhatsApp a un número específico',
-            params: [
-              { name: 'to', type: 'string', required: true, description: 'Número de teléfono del destinatario (formato internacional)' },
-              { name: 'message', type: 'string', required: true, description: 'Contenido del mensaje a enviar' }
-            ]
-          },
-          {
-            id: 'send_template',
-            name: 'Enviar Plantilla',
-            description: 'Envía un mensaje de plantilla aprobado por WhatsApp',
-            params: [
-              { name: 'to', type: 'string', required: true, description: 'Número de teléfono del destinatario' },
-              { name: 'template_name', type: 'string', required: true, description: 'Nombre de la plantilla aprobada' },
-              { name: 'template_params', type: 'object', required: true, description: 'Parámetros para la plantilla' }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 'whatsapp_analysis', 
-        name: 'Análisis WhatsApp', 
-        description: 'Análisis avanzado de conversaciones de WhatsApp',
-        icon: '📊',
-        category: 'analytics',
-        plan: 'pro',
-        creditCost: 10,
-        capabilities: [
-          {
-            id: 'analyze_sentiment',
-            name: 'Analizar Sentimiento',
-            description: 'Analiza el sentimiento de una conversación de WhatsApp',
-            params: [
-              { name: 'chat_id', type: 'string', required: true, description: 'ID de la conversación a analizar' },
-              { name: 'time_period', type: 'string', required: false, default: 'week', description: 'Período de tiempo a analizar (day, week, month, all)' }
-            ]
-          },
-          {
-            id: 'extract_topics',
-            name: 'Extraer Temas',
-            description: 'Extrae los temas principales de una conversación',
-            params: [
-              { name: 'chat_id', type: 'string', required: true, description: 'ID de la conversación a analizar' },
-              { name: 'max_topics', type: 'number', required: false, default: 5, description: 'Número máximo de temas a extraer' }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 'ai_assistant', 
-        name: 'Asistente IA', 
-        description: 'Creación y gestión de asistentes de IA personalizados',
-        icon: '🧠',
-        category: 'ai',
-        plan: 'pro',
-        creditCost: 15,
-        capabilities: [
-          {
-            id: 'create_assistant',
-            name: 'Crear Asistente',
-            description: 'Crea un asistente de IA personalizado',
-            params: [
-              { name: 'name', type: 'string', required: true, description: 'Nombre del asistente' },
-              { name: 'instructions', type: 'string', required: true, description: 'Instrucciones para el asistente' },
-              { name: 'tools', type: 'array', required: false, default: ['code_interpreter'], description: 'Herramientas disponibles para el asistente' }
-            ]
-          },
-          {
-            id: 'run_assistant',
-            name: 'Ejecutar Asistente',
-            description: 'Ejecuta un asistente en un hilo de conversación',
-            params: [
-              { name: 'thread_id', type: 'string', required: true, description: 'ID del hilo de conversación' },
-              { name: 'assistant_id', type: 'string', required: true, description: 'ID del asistente a ejecutar' }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 'seo_analysis', 
-        name: 'Análisis SEO', 
-        description: 'Análisis y optimización SEO para contenido web',
-        icon: '🔍',
-        category: 'marketing',
-        plan: 'basic',
-        creditCost: 8,
-        capabilities: [
-          {
-            id: 'analyze_content',
-            name: 'Analizar Contenido',
-            description: 'Analiza contenido para optimización SEO',
-            params: [
-              { name: 'content', type: 'string', required: true, description: 'Contenido a analizar' },
-              { name: 'keywords', type: 'array', required: true, description: 'Palabras clave objetivo' }
-            ]
-          },
-          {
-            id: 'generate_meta_tags',
-            name: 'Generar Meta Tags',
-            description: 'Genera meta tags optimizados para SEO',
-            params: [
-              { name: 'title', type: 'string', required: true, description: 'Título de la página' },
-              { name: 'content', type: 'string', required: true, description: 'Contenido de la página' }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 'webhook_integration', 
-        name: 'Integración Webhook', 
-        description: 'Gestión de integraciones mediante webhooks',
-        icon: '🔗',
-        category: 'integration',
-        plan: 'enterprise',
-        creditCost: 12,
-        capabilities: [
-          {
-            id: 'create_webhook',
-            name: 'Crear Webhook',
-            description: 'Crea un nuevo webhook para integraciones',
-            params: [
-              { name: 'name', type: 'string', required: true, description: 'Nombre del webhook' },
-              { name: 'target_url', type: 'string', required: true, description: 'URL de destino del webhook' },
-              { name: 'events', type: 'array', required: true, description: 'Eventos que disparan el webhook' }
-            ]
-          },
-          {
-            id: 'trigger_webhook',
-            name: 'Disparar Webhook',
-            description: 'Dispara manualmente un webhook con datos personalizados',
-            params: [
-              { name: 'webhook_id', type: 'string', required: true, description: 'ID del webhook a disparar' },
-              { name: 'event', type: 'string', required: true, description: 'Evento a disparar' },
-              { name: 'payload', type: 'object', required: true, description: 'Datos a enviar con el webhook' }
-            ]
-          }
-        ]
-      }
-    ];
+  const queryClient = useQueryClient(); // Get query client instance
+
+  // Cargar herramientas disponibles (Replace simulation with API call)
+  const { data: toolsData, isLoading: toolsLoading } = useQuery("tools", apiService.tools.getAvailable, {
+    enabled: !!user, // Only run if user is logged in
   });
-  
+  const tools = toolsData?.data; // Extract data from response
+
+  // Combine loading states
+  const isLoading = authLoading || toolsLoading;
+
   // Filtrar herramientas por categoría y búsqueda
   const filteredTools = tools?.filter(tool => {
     const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
@@ -243,55 +67,60 @@ const ToolsExplorer: React.FC = () => {
     addRecentTool(tool.id);
   };
   
+  // Manejar cambio en los parámetros del formulario
+  const handleParamChange = (paramName: string, value: any) => {
+    setFormParams(prev => ({ ...prev, [paramName]: value }));
+  };
+
+  // Manejar la selección de una capacidad
+  const handleSelectCapability = (capability: any) => {
+    setSelectedCapability(capability);
+    setFormParams({}); // Reset form params when capability changes
+    setExecutionResult(null); // Clear previous results
+  };
+
   // Manejar la ejecución de una capacidad
-  const handleExecuteCapability = async (capability: any) => {
-    if (!selectedTool) return;
-    
-    // Recopilar parámetros (en una implementación real, esto sería un formulario)
-    const params: any = {};
-    capability.params.forEach((param: any) => {
-      // Simulamos valores para este ejemplo
-      if (param.type === 'string') {
-        params[param.name] = param.name === 'prompt' ? 'Explica el concepto de inteligencia artificial en términos simples' : 'valor de ejemplo';
-      } else if (param.type === 'number') {
-        params[param.name] = param.default || 0;
-      } else if (param.type === 'array') {
-        params[param.name] = [];
-      } else if (param.type === 'object') {
-        params[param.name] = {};
-      }
-    });
-    
+  const handleExecuteCapability = async () => {
+    if (!selectedTool || !selectedCapability) return;
+
+    // Basic validation: Check if all required params are filled
+    const missingParams = selectedCapability.params?.filter(
+      (param: any) => param.required && !formParams[param.name]
+    );
+
+    if (missingParams && missingParams.length > 0) {
+      // TODO: Show proper validation error to the user
+      console.error("Missing required parameters:", missingParams.map((p: any) => p.name));
+      alert(`Faltan parámetros requeridos: ${missingParams.map((p: any) => p.name).join(", ")}`);
+      return;
+    }
+
     try {
       setIsExecuting(true);
       setExecutionResult(null);
-      
-      // En una implementación real, esto llamaría al backend
-      // Simulamos una respuesta para este ejemplo
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const result = {
-        status: 'success',
-        data: {
-          result: 'La inteligencia artificial (IA) es como enseñar a las computadoras a pensar y aprender de manera similar a los humanos. Imagina que le das a una computadora la capacidad de reconocer patrones, resolver problemas y mejorar con el tiempo, sin necesidad de programarla específicamente para cada tarea. Es como tener un asistente digital que puede entender lo que dices, reconocer imágenes, tomar decisiones y adaptarse a nuevas situaciones.',
-          execution_time: '1.2s',
-          credits_used: selectedTool.creditCost
-        }
-      };
-      
-      setExecutionResult(result);
+
+      // Call the real backend API endpoint
+      const response = await apiService.tools.execute(
+        selectedTool.id, 
+        selectedCapability.id, 
+        formParams
+      );
+
+      setExecutionResult(response.data); // Store the actual response data
       incrementToolUsage(selectedTool.id);
-      
-    } catch (error) {
+      // TODO: Update user credits globally (e.g., refetch user data or update Zustand store)
+
+    } catch (error: any) {
+      console.error("Error executing capability:", error);
       setExecutionResult({
-        status: 'error',
-        message: 'Error al ejecutar la capacidad'
+        status: "error",
+        message: error.response?.data?.error || error.message || "Error al ejecutar la capacidad",
       });
     } finally {
       setIsExecuting(false);
     }
   };
-  
+
   // Manejar favoritos
   const toggleFavorite = (toolId: string) => {
     if (favorites.includes(toolId)) {
@@ -310,48 +139,50 @@ const ToolsExplorer: React.FC = () => {
   }
   
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fade-in font-inter"> {/* Use branding font and animation */}
       {/* Encabezado */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Explorador de Herramientas</h1>
-          <p className="text-muted-foreground">Descubre y utiliza las herramientas disponibles en GENIA MCP</p>
+          <h1 className="text-2xl font-bold text-genia-black">Explorador de Herramientas</h1>
+          <p className="text-genia-gray-dark">Descubre y utiliza las herramientas disponibles en GENIA</p>
         </div>
       </div>
       
-      {/* Filtros y búsqueda */}
+      {/* Filtros y búsqueda - Apply branding styles */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <input
             type="text"
             placeholder="Buscar herramientas..."
-            className="input w-full"
+            className="w-full px-4 py-2 border border-genia-gray-medium rounded-xl focus:outline-none focus:ring-2 focus:ring-genia-blue/50 focus:border-genia-blue" // Branded input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Branded buttons */}
           <button
-            className={`btn ${selectedCategory === 'all' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedCategory('all')}
+            className={`inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md transition-colors ${selectedCategory === "all" ? "bg-genia-blue text-genia-white border-genia-blue" : "border-genia-gray-medium text-genia-gray-dark bg-genia-white hover:bg-genia-gray-light"}`}
+            onClick={() => setSelectedCategory("all")}
           >
             Todas
           </button>
+          {/* TODO: Dynamically generate categories from tools data */}
           <button
-            className={`btn ${selectedCategory === 'ai' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedCategory('ai')}
+            className={`inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md transition-colors ${selectedCategory === "ai" ? "bg-genia-blue text-genia-white border-genia-blue" : "border-genia-gray-medium text-genia-gray-dark bg-genia-white hover:bg-genia-gray-light"}`}
+            onClick={() => setSelectedCategory("ai")}
           >
             IA
           </button>
           <button
-            className={`btn ${selectedCategory === 'messaging' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedCategory('messaging')}
+            className={`inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md transition-colors ${selectedCategory === "messaging" ? "bg-genia-blue text-genia-white border-genia-blue" : "border-genia-gray-medium text-genia-gray-dark bg-genia-white hover:bg-genia-gray-light"}`}
+            onClick={() => setSelectedCategory("messaging")}
           >
             Mensajería
           </button>
           <button
-            className={`btn ${selectedCategory === 'analytics' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedCategory('analytics')}
+            className={`inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md transition-colors ${selectedCategory === "analytics" ? "bg-genia-blue text-genia-white border-genia-blue" : "border-genia-gray-medium text-genia-gray-dark bg-genia-white hover:bg-genia-gray-light"}`}
+            onClick={() => setSelectedCategory("analytics")}
           >
             Analítica
           </button>
@@ -360,51 +191,45 @@ const ToolsExplorer: React.FC = () => {
       
       {/* Contenido principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lista de herramientas */}
+        {/* Lista de herramientas - Apply branding styles */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title text-lg">Herramientas</h2>
+          <div className="bg-genia-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-4 border-b border-genia-gray-medium/50">
+              <h2 className="text-lg font-semibold text-genia-black">Herramientas</h2>
             </div>
-            <div className="card-content p-0">
-              <div className="divide-y">
+            <div className="max-h-[60vh] overflow-y-auto">
+              <div className="divide-y divide-genia-gray-medium/30">
                 {filteredTools?.map((tool) => (
                   <div 
                     key={tool.id}
-                    className={`p-4 cursor-pointer hover:bg-muted transition-colors ${selectedTool?.id === tool.id ? 'bg-muted' : ''}`}
+                    className={`p-4 cursor-pointer hover:bg-genia-gray-light/50 transition-colors ${selectedTool?.id === tool.id ? "bg-genia-blue/5" : ""}`}
                     onClick={() => handleSelectTool(tool)}
                   >
                     <div className="flex items-start">
-                      <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-xl">
-                        {tool.icon}
+                      <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-genia-mint/20 rounded-full text-genia-mint">
+                        {/* TODO: Use Lucide icons consistently */}
+                        {tool.icon || "?"} 
                       </div>
                       <div className="ml-4 flex-1">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-medium">{tool.name}</h3>
+                          <h3 className="font-medium text-genia-black">{tool.name}</h3>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleFavorite(tool.id);
                             }}
-                            className="text-muted-foreground hover:text-yellow-500 transition-colors"
+                            className="text-genia-gray-dark hover:text-yellow-500 transition-colors p-1 rounded-full hover:bg-yellow-100/50"
                           >
-                            {favorites.includes(tool.id) ? (
-                              <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                              </svg>
-                            )}
+                          {/* Use Lucide Star icon */}
+                            <Star className={`w-5 h-5 ${favorites.includes(tool.id) ? "text-yellow-400 fill-current" : ""}`} />
                           </button>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
+                        <p className="text-sm text-genia-gray-dark mt-1">{tool.description}</p>
                         <div className="flex items-center mt-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${isToolAvailable(tool.plan) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {isToolAvailable(tool.plan) ? 'Disponible' : 'Plan Superior Requerido'}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${isToolAvailable(tool.plan) ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                            {isToolAvailable(tool.plan) ? "Disponible" : "Plan Superior"}
                           </span>
-                          <span className="text-xs text-muted-foreground ml-2">{tool.creditCost} créditos</span>
+                          <span className="text-xs text-genia-gray-dark ml-2">{tool.creditCost} créditos</span>
                         </div>
                       </div>
                     </div>
@@ -415,47 +240,72 @@ const ToolsExplorer: React.FC = () => {
           </div>
         </div>
         
-        {/* Detalles de la herramienta */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Detalles de la herramienta - Apply branding styles */}
+        <div className="lg:col-span-2 space-y-6">
           {selectedTool ? (
             <>
-              <div className="card">
-                <div className="card-header">
+              <div className="bg-genia-white rounded-2xl shadow-lg">
+                <div className="p-6 border-b border-genia-gray-medium/50">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded-full text-2xl mr-4">
-                      {selectedTool.icon}
+                    <div className="w-12 h-12 flex items-center justify-center bg-genia-mint/20 rounded-full text-genia-mint text-2xl mr-4">
+                      {selectedTool.icon || "?"}
                     </div>
                     <div>
-                      <h2 className="card-title text-xl">{selectedTool.name}</h2>
-                      <p className="text-muted-foreground">{selectedTool.description}</p>
+                      <h2 className="text-xl font-semibold text-genia-black">{selectedTool.name}</h2>
+                      <p className="text-sm text-genia-gray-dark">{selectedTool.description}</p>
                     </div>
                   </div>
                 </div>
-                <div className="card-content">
-                  <h3 className="text-lg font-medium mb-4">Capacidades</h3>
+                <div className="p-6">
+                  <h3 className="text-lg font-medium mb-4 text-genia-black">Capacidades</h3>
                   <div className="space-y-4">
                     {selectedTool.capabilities.map((capability: any) => (
-                      <div key={capability.id} className="border rounded-lg p-4">
-                        <h4 className="font-medium">{capability.name}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{capability.description}</p>
+                      <div key={capability.id} className="border border-genia-gray-medium/30 rounded-xl p-4">
+                        <h4 className="font-medium text-genia-black">{capability.name}</h4>
+                        <p className="text-sm text-genia-gray-dark mt-1">{capability.description}</p>
                         <div className="mt-4">
-                          <h5 className="text-sm font-medium mb-2">Parámetros:</h5>
-                          <ul className="text-sm space-y-2">
-                            {capability.params.map((param: any) => (
-                              <li key={param.name} className="flex">
-                                <span className="font-mono bg-muted px-2 py-1 rounded mr-2">{param.name}</span>
-                                <span className="text-muted-foreground">{param.description}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          <h5 className="text-sm font-medium mb-2 text-genia-gray-dark">Parámetros:</h5>
+                          {capability.params && capability.params.length > 0 ? (
+                            <div className="space-y-3">
+                              {capability.params.map((param: any) => (
+                                <div key={param.name}>
+                                  <label htmlFor={`${capability.id}-${param.name}`} className="block text-sm font-medium text-genia-gray-dark mb-1">
+                                    {param.name} {param.required && <span className="text-red-500">*</span>}
+                                  </label>
+                                  {/* TODO: Render different input types based on param.type */}
+                                  <input
+                                    type={param.type === "number" ? "number" : "text"} // Basic type handling
+                                    id={`${capability.id}-${param.name}`}
+                                    name={param.name}
+                                    placeholder={param.description}
+                                    required={param.required}
+                                    value={formParams[param.name] || ""}
+                                    onChange={(e) => handleParamChange(param.name, e.target.value)}
+                                    className="w-full px-3 py-2 border border-genia-gray-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-genia-blue focus:border-genia-blue text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-genia-gray-dark italic">Esta capacidad no requiere parámetros.</p>
+                          )}
                         </div>
                         <div className="mt-4">
+                          {/* Branded execute button */}
                           <button
-                            onClick={() => handleExecuteCapability(capability)}
+                            onClick={handleExecuteCapability}
                             disabled={isExecuting || !isToolAvailable(selectedTool.plan)}
-                            className="btn btn-primary"
+                            className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-genia-white ${isToolAvailable(selectedTool.plan) ? "bg-genia-mint hover:bg-emerald-600" : "bg-genia-gray-medium cursor-not-allowed"} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-genia-mint disabled:opacity-50`}
                           >
-                            {isExecuting ? 'Ejecutando...' : 'Ejecutar'}
+                            {isExecuting ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Ejecutando...
+                              </>
+                            ) : "Ejecutar"}
                           </button>
                         </div>
                       </div>
@@ -464,25 +314,27 @@ const ToolsExplorer: React.FC = () => {
                 </div>
               </div>
               
-              {/* Resultado de la ejecución */}
+              {/* Resultado de la ejecución - Apply branding styles */}
               {executionResult && (
-                <div className={`card ${executionResult.status === 'success' ? 'border-green-500' : 'border-red-500'}`}>
-                  <div className="card-header">
-                    <h2 className="card-title text-lg">Resultado</h2>
+                <div className={`rounded-2xl shadow-lg overflow-hidden ${executionResult.status === "success" ? "border border-green-300 bg-green-50" : "border border-red-300 bg-red-50"}`}>
+                  <div className="p-4 border-b ${executionResult.status === "success" ? "border-green-200" : "border-red-200"}">
+                    <h2 className={`text-lg font-semibold ${executionResult.status === "success" ? "text-green-800" : "text-red-800"}`}>Resultado</h2>
                   </div>
-                  <div className="card-content">
-                    {executionResult.status === 'success' ? (
+                  <div className="p-6">
+                    {executionResult.status === "success" ? (
                       <>
-                        <div className="bg-muted p-4 rounded-lg">
-                          <p>{executionResult.data.result}</p>
+                        <div className="bg-genia-white p-4 rounded-lg border border-genia-gray-medium/30">
+                          {/* TODO: Format result nicely, maybe use markdown renderer */}
+                          <pre className="whitespace-pre-wrap text-sm text-genia-black">{JSON.stringify(executionResult.data, null, 2)}</pre>
                         </div>
-                        <div className="flex justify-between mt-4 text-sm text-muted-foreground">
-                          <span>Tiempo de ejecución: {executionResult.data.execution_time}</span>
-                          <span>Créditos utilizados: {executionResult.data.credits_used}</span>
+                        <div className="flex justify-between mt-4 text-sm text-genia-gray-dark">
+                          <span>Tiempo: {executionResult.data.execution_time || "N/A"}</span>
+                          <span>Créditos: {executionResult.data.credits_used || selectedTool.creditCost || "N/A"}</span>
                         </div>
                       </>
                     ) : (
-                      <div className="bg-red-50 p-4 rounded-lg text-red-800">
+                      <div className="text-red-700">
+                        <p className="font-medium">Error al ejecutar:</p>
                         <p>{executionResult.message}</p>
                       </div>
                     )}
@@ -491,13 +343,12 @@ const ToolsExplorer: React.FC = () => {
               )}
             </>
           ) : (
-            <div className="card">
-              <div className="card-content text-center py-12">
-                <svg className="w-16 h-16 mx-auto text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                <h3 className="text-lg font-medium mt-4">Selecciona una herramienta</h3>
-                <p className="text-muted-foreground mt-2">Explora las herramientas disponibles y selecciona una para ver sus capacidades</p>
+            <div className="bg-genia-white rounded-2xl shadow-lg">
+              <div className="p-12 text-center">
+                {/* Use Lucide icon */}
+                <svg className="w-16 h-16 mx-auto text-genia-gray-medium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 18.657A8 8 0 016.343 7.343m11.314 11.314a8 8 0 01-11.314 0m11.314 0L20 20M6.343 7.343L4 4m6 6l-4-4m0 0l4-4m-4 4l4 4m6-6l4 4m0 0l-4 4m4-4l-4-4" /></svg>
+                <h3 className="text-lg font-medium mt-4 text-genia-black">Selecciona una herramienta</h3>
+                <p className="text-genia-gray-dark mt-2">Explora las herramientas disponibles y selecciona una para ver sus capacidades</p>
               </div>
             </div>
           )}

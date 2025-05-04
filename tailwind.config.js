@@ -1,4 +1,6 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import("tailwindcss").Config} */
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 export default {
   content: [
     "./index.html",
@@ -7,58 +9,69 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
-        },
-        secondary: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
-          950: '#2e1065',
-        },
-        accent: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-          950: '#431407',
-        },
+        // Branding Colors based on pasted_content.txt
+        "genia-mint": "#00ffa3",
+        "genia-blue": "#017aff",
+        "genia-black": "#000000",
+        "genia-white": "#ffffff",
+        // Grays from branding
+        "genia-gray-light": "#f9fafb", // Lightest background
+        "genia-gray-medium": "#d1d5db", // Medium text/borders
+        "genia-gray-dark": "#4b5563", // Darker text/elements
+        "genia-sidebar": "#1f2937", // Specific dark gray for sidebar
+        
+        // Keep primary/secondary/accent for potential component library use, but map to branding
+        primary: "#00ffa3", // Map primary to mint green
+        secondary: "#017aff", // Map secondary to electric blue
+        accent: "#fb923c", // Keep orange as accent for now, can be adjusted
+        
+        // Existing palette (can be pruned later if not used)
+        gray: defaultTheme.colors.gray,
       },
       fontFamily: {
-        sans: ['Inter var', 'sans-serif'],
+        // Branding Fonts
+        sans: ["Inter", ...defaultTheme.fontFamily.sans], // Main font: Inter
+        alt: ["DM Sans", ...defaultTheme.fontFamily.sans], // Secondary font: DM Sans
+      },
+      borderRadius: {
+        // Branding Border Radius
+        "2xl": "1rem", // For cards
+        "xl": "0.75rem", // For inputs
+        "lg": "0.5rem", // Default large
+        "md": "0.375rem", // Default medium
+        "full": "9999px",
       },
       boxShadow: {
-        'glow': '0 0 15px rgba(14, 165, 233, 0.5)',
+        // Branding Shadows (neumorphic style)
+        "md": "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+        "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05)",
+        "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+        "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.1)", // Adjusted for more presence
+        "inner": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)",
+        "none": "none",
+        // Glow effect (can be kept or removed)
+        "glow": "0 0 15px rgba(0, 255, 163, 0.5)", // Adjusted glow to mint green
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      }
+        "fade-in": "fadeIn 0.5s ease-out forwards",
+        "slide-up": "slideUp 0.5s ease-out forwards",
+        // Keep pulse-slow or add others as needed
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+        slideUp: {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0)", opacity: 1 },
+        },
+      },
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
+    require("@tailwindcss/forms"),
   ],
-}
+};
+

@@ -1,100 +1,55 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useUIStore } from '@/services/store';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  HomeIcon,
-  WrenchScrewdriverIcon,
-  CreditCardIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  QuestionMarkCircleIcon,
-  ChartBarIcon,
-  ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline';
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Bot, Settings, BarChart3, CreditCard, Users, Mail, MessageSquare, Link, Search } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
-  const { sidebarOpen } = useUIStore();
-  const { userDetails, signOut } = useAuth();
-  const location = useLocation();
-  
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-    { name: 'Herramientas', href: '/tools', icon: WrenchScrewdriverIcon },
-    { name: 'Analíticas', href: '/analytics', icon: ChartBarIcon },
-    { name: 'Planes', href: '/pricing', icon: CreditCardIcon },
-    { name: 'Perfil', href: '/profile', icon: UserIcon },
-    { name: 'Configuración', href: '/settings', icon: Cog6ToothIcon },
-    { name: 'Ayuda', href: '/help', icon: QuestionMarkCircleIcon },
+  const navItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/chat', icon: Bot, label: 'Genia CEO' },
+    { path: '/tools', icon: Search, label: 'Herramientas' }, // Using Search as a placeholder for Tools/Explore
+    { path: '/funnels', icon: Link, label: 'Embudos' },
+    { path: '/content', icon: Mail, label: 'Contenido' }, // Using Mail as placeholder
+    { path: '/metrics', icon: BarChart3, label: 'Métricas' },
+    { path: '/referrals', icon: Users, label: 'Referidos' }, // Assuming a /referrals route
+    { path: '/pricing', icon: CreditCard, label: 'Planes' },
+    { path: '/settings', icon: Settings, label: 'Configuración' }, // Assuming a /settings route base
   ];
-  
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-  
-  if (!sidebarOpen) {
-    return null;
-  }
-  
+
   return (
-    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out md:translate-x-0">
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-center h-16 border-b border-border">
-          <h1 className="text-xl font-bold">GENIA MCP</h1>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto py-4">
-          <nav className="px-2 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`
-                  flex items-center px-4 py-3 text-sm font-medium rounded-md
-                  ${isActive(item.href)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-muted'}
-                `}
+    <div className="w-64 h-screen bg-genia-sidebar text-gray-300 p-4 fixed left-0 top-0 flex flex-col font-inter">
+      {/* Logo Placeholder */}
+      <div className="mb-10 px-2">
+        <h1 className="text-2xl font-bold text-genia-white">GENIA</h1>
+        <p className="text-xs text-gray-400">No pienses, ejecuta.</p>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1">
+        <ul>
+          {navItems.map((item) => (
+            <li key={item.path} className="mb-2">
+              <NavLink
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-gray-700 text-genia-white' : 'hover:bg-gray-800 hover:text-genia-white'}`
+                }
               >
-                <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              {userDetails?.avatar_url ? (
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={userDetails.avatar_url}
-                  alt="Avatar"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <UserIcon className="h-6 w-6 text-primary" />
-                </div>
-              )}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{userDetails?.name || 'Usuario'}</p>
-              <p className="text-xs text-muted-foreground">{userDetails?.plan || 'Plan Free'}</p>
-            </div>
-          </div>
-          
-          <button
-            onClick={signOut}
-            className="mt-4 flex items-center px-4 py-2 text-sm font-medium w-full rounded-md hover:bg-muted"
-          >
-            <ArrowLeftOnRectangleIcon className="mr-3 h-5 w-5" aria-hidden="true" />
-            Cerrar sesión
-          </button>
-        </div>
+                <item.icon className="w-5 h-5 mr-3" />
+                <span>{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Footer/User Info Placeholder */}
+      <div className="mt-auto border-t border-gray-700 pt-4">
+        {/* User profile/logout can go here */}
+        <p className="text-xs text-center text-gray-500">© 2025 GENIA</p>
       </div>
     </div>
   );
 };
 
 export default Sidebar;
+
