@@ -16,6 +16,7 @@ import NotFound from '@/pages/NotFound';
 import ToolsExplorer from '@/pages/ToolsExplorer';
 import Profile from '@/pages/Profile';
 import Pricing from '@/pages/Pricing';
+import Chat from '@/pages/Chat'; // Importar Chat
 
 // Crear cliente de React Query
 const queryClient = new QueryClient({
@@ -66,9 +67,11 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}> {/* Wrap protected routes */}
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/chat" element={<Chat />} /> {/* Añadir ruta /chat */}
                 <Route path="/tools" element={<ToolsExplorer />} />
                 <Route path="/profile" element={<Profile />} />
                 {/* Add other protected routes inside AppLayout here */}
+                {/* TODO: Add routes for /funnels, /content, /metrics, /referrals, /settings */}
               </Route>
             </Route>
             
@@ -83,3 +86,4 @@ function App() {
 }
 
 export default App;
+
