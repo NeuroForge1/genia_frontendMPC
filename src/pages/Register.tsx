@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaGoogle, FaFacebookF } from 'react-icons/fa';
 
 const Register: React.FC = () => {
   const { signUp, signInWithGoogle, signInWithFacebook } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
+  const navigate = useNavigate();
+
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
       name: '',
@@ -15,221 +18,235 @@ const Register: React.FC = () => {
       confirmPassword: ''
     }
   });
-  
+
   const password = watch('password');
-  
+
   const onSubmit = async (data: { name: string; email: string; password: string }) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       await signUp(data.email, data.password, data.name);
-      toast.success('Registro exitoso. Verifica tu correo electrónico.');
-    } catch (error) {
+      toast.success('Registro exitoso. Por favor, verifica tu correo electrónico para activar tu cuenta.');
+      // Optionally navigate to a confirmation page or login page
+      // navigate('/login'); 
+    } catch (error: any) {
       console.error('Error en registro:', error);
+      toast.error(error.message || 'Error al registrar la cuenta. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
   };
-  
+
+  const handleOAuthSignIn = async (provider: 'google' | 'facebook') => {
+    setIsLoading(true);
+    try {
+      if (provider === 'google') {
+        await signInWithGoogle();
+      } else {
+        await signInWithFacebook();
+      }
+      // Redirection is handled by Supabase/AuthContext
+    } catch (error: any) {
+      console.error(`Error al iniciar sesión con ${provider}:`, error);
+      toast.error(error.message || `Error al iniciar sesión con ${provider}.`);
+      setIsLoading(false); // Ensure loading state is reset on error
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-extrabold">GENIA MCP</h1>
-          <h2 className="mt-6 text-2xl font-bold">Crear una cuenta</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Regístrate para acceder a todas las herramientas de GENIA MCP
-          </p>
-        </div>
-        
-        <div className="mt-8">
-          <div className="bg-card shadow-sm rounded-lg p-6 border">
-            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium">
-                  Nombre completo
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="name"
-                    type="text"
-                    autoComplete="name"
-                    className="input w-full"
-                    {...register('name', { 
-                      required: 'El nombre es obligatorio',
-                      minLength: {
-                        value: 2,
-                        message: 'El nombre debe tener al menos 2 caracteres'
-                      }
-                    })}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium">
-                  Correo electrónico
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    className="input w-full"
-                    {...register('email', { 
-                      required: 'El correo electrónico es obligatorio',
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Dirección de correo inválida'
-                      }
-                    })}
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium">
-                  Contraseña
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    className="input w-full"
-                    {...register('password', { 
-                      required: 'La contraseña es obligatoria',
-                      minLength: {
-                        value: 8,
-                        message: 'La contraseña debe tener al menos 8 caracteres'
-                      },
-                      pattern: {
-                        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                        message: 'La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial'
-                      }
-                    })}
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium">
-                  Confirmar contraseña
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    className="input w-full"
-                    {...register('confirmPassword', { 
-                      required: 'Debes confirmar la contraseña',
-                      validate: value => value === password || 'Las contraseñas no coinciden'
-                    })}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  id="terms"
-                  name="terms"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  required
-                />
-                <label htmlFor="terms" className="ml-2 block text-sm text-muted-foreground">
-                  Acepto los{' '}
-                  <a href="#" className="font-medium text-primary hover:text-primary/80">
-                    Términos y Condiciones
-                  </a>{' '}
-                  y la{' '}
-                  <a href="#" className="font-medium text-primary hover:text-primary/80">
-                    Política de Privacidad
-                  </a>
-                </label>
-              </div>
-              
-              <div>
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      <span>Registrando...</span>
-                    </div>
-                  ) : (
-                    'Registrarse'
-                  )}
-                </button>
-              </div>
-            </form>
-            
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-card text-muted-foreground">
-                    O regístrate con
-                  </span>
-                </div>
-              </div>
-              
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={signInWithGoogle}
-                  className="btn btn-outline w-full flex items-center justify-center"
-                >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
-                    />
-                  </svg>
-                  Google
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={signInWithFacebook}
-                  className="btn btn-outline w-full flex items-center justify-center"
-                >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"
-                    />
-                  </svg>
-                  Facebook
-                </button>
-              </div>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                ¿Ya tienes una cuenta?{' '}
-                <a href="/login" className="font-medium text-primary hover:text-primary/80">
-                  Inicia sesión
-                </a>
-              </p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 p-4">
+      {/* Logo/Brand Name */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-purple-700 tracking-tight">GENIA</h1>
+        <p className="text-gray-600">Tu Centro de Mando Inteligente</p>
+      </div>
+
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Crear Nueva Cuenta</h2>
+
+        {/* Registration Form */}
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+          {/* Name Input */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre Completo
+            </label>
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              placeholder="Tu Nombre"
+              className={`input w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+              {...register('name', {
+                required: 'El nombre es obligatorio',
+                minLength: {
+                  value: 2,
+                  message: 'El nombre debe tener al menos 2 caracteres'
+                }
+              })}
+            />
+            {errors.name && (
+              <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Email Input */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Correo Electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="tu@email.com"
+              className={`input w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              {...register('email', {
+                required: 'El correo electrónico es obligatorio',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Dirección de correo inválida'
+                }
+              })}
+            />
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Password Input */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Mínimo 8 caracteres, mayúscula, minúscula, número, símbolo"
+              className={`input w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+              {...register('password', {
+                required: 'La contraseña es obligatoria',
+                minLength: {
+                  value: 8,
+                  message: 'La contraseña debe tener al menos 8 caracteres'
+                },
+                // Consider simplifying the regex or providing clearer feedback if needed
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+                  message: 'Incluir mayúscula, minúscula, número y símbolo'
+                }
+              })}
+            />
+            {errors.password && (
+              <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirm Password Input */}
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar Contraseña
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Repite la contraseña"
+              className={`input w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+              {...register('confirmPassword', {
+                required: 'Debes confirmar la contraseña',
+                validate: value => value === password || 'Las contraseñas no coinciden'
+              })}
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+          {/* Terms Agreement */}
+          <div className="flex items-start">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              className="h-4 w-4 mt-0.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              {...register('terms', { required: 'Debes aceptar los términos' })}
+            />
+            <div className="ml-3 text-sm">
+              <label htmlFor="terms" className="text-gray-600">
+                Acepto los{' '}
+                <Link to="/terms" target="_blank" className="font-medium text-purple-600 hover:text-purple-500">
+                  Términos y Condiciones
+                </Link>{' '}y la{' '}
+                <Link to="/privacy" target="_blank" className="font-medium text-purple-600 hover:text-purple-500">
+                  Política de Privacidad
+                </Link>.
+              </label>
+              {errors.terms && (
+                <p className="mt-1 text-xs text-red-600">{errors.terms.message}</p>
+              )}
             </div>
           </div>
+
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className="btn w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Registrando...
+                </>
+              ) : (
+                'Crear Cuenta'
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Divider */}
+        <div className="my-6 flex items-center justify-center">
+          <span className="border-t border-gray-300 flex-grow"></span>
+          <span className="px-3 text-sm text-gray-500">O regístrate con</span>
+          <span className="border-t border-gray-300 flex-grow"></span>
+        </div>
+
+        {/* OAuth Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleOAuthSignIn('google')}
+            disabled={isLoading}
+            className="btn w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-lg transition duration-300 ease-in-out flex items-center justify-center disabled:opacity-50"
+          >
+            <FaGoogle className="w-5 h-5 mr-2 text-red-500" />
+            Google
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOAuthSignIn('facebook')}
+            disabled={isLoading}
+            className="btn w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-lg transition duration-300 ease-in-out flex items-center justify-center disabled:opacity-50"
+          >
+            <FaFacebookF className="w-5 h-5 mr-2 text-blue-600" />
+            Facebook
+          </button>
+        </div>
+
+        {/* Link to Login */}
+        <div className="mt-6 text-center text-sm">
+          <p className="text-gray-600">
+            ¿Ya tienes una cuenta?{' '}
+            <Link to="/login" className="font-medium text-purple-600 hover:text-purple-500">
+              Inicia sesión aquí
+            </Link>
+          </p>
         </div>
       </div>
     </div>
@@ -237,3 +254,4 @@ const Register: React.FC = () => {
 };
 
 export default Register;
+
