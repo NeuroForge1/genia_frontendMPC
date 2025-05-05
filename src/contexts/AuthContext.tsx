@@ -245,7 +245,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         provider: 'google',
         options: {
           // Ensure this matches Supabase config and your routing setup
-          // redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) throw error;
@@ -265,7 +265,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         provider: 'facebook',
         options: {
           // Ensure this matches Supabase config and your routing setup
-          // redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) throw error;
